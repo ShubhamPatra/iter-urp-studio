@@ -35,6 +35,8 @@ jobs:
         run: npm ci
 
       - name: Build
+        env:
+          VITE_API_BASE_URL: https://api.urpstudio.me
         run: npm run build
 
       - name: Add CNAME

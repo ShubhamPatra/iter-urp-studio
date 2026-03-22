@@ -17,9 +17,6 @@ RUN npm ci --omit=dev
 
 COPY server ./server
 
-# Uploads are ephemeral on Render free tier; kept for runtime compatibility.
-RUN mkdir -p /app/uploads
-
 ENV NODE_ENV=production
 ENV PORT=3001
 

@@ -15,12 +15,16 @@ import { usePPTStore } from './store/pptStore';
 import { useReportStore } from './store/reportStore';
 import { useCompiler } from './hooks/useCompiler';
 import { generatePPTLatex, generateReportLatex } from './lib/latexGenerators';
+import { withApiBase } from './lib/apiBase';
 
 export default function App() {
   const [mode, setMode] = useState('ppt');
   const [activeSection, setActiveSection] = useState('title');
   const [previewWidth, setPreviewWidth] = useState(480);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [backendActive, setBackendActive] = useState(true);
+  const [backendChecking, setBackendChecking] = useState(false);
+  const [showBackendPopup, setShowBackendPopup] = useState(false);
   const containerRef = useRef(null);
 
   // PPT Store
@@ -42,18 +46,23 @@ export default function App() {
   } = useReportStore();
 
   const uploadImage = useCallback(async (file) => {
+    if (!backendActive) {
+      setShowBackendPopup(true);
+      throw new Error('Backend is inactive. Please wake it up first.');
+    }
+
     const formData = new FormData();
     formData.append('image', file);
     setUploadingImage(true);
     try {
       try {
-        const res = await axios.post('/api/upload-image', formData, {
+        const res = await axios.post(withApiBase('/api/upload-image'), formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         return res.data;
       } catch (_err) {
         // Backward compatibility for deployments exposing non-/api routes.
-        const res = await axios.post('/upload-image', formData, {
+        const res = await axios.post(withApiBase('/upload-image'), formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         return res.data;
@@ -104,8 +113,25 @@ export default function App() {
     }
   }, [mode, pptData, reportData]);
 
+  const pingBackend = useCallback(async (showToast = false) => {
+    setBackendChecking(true);
+    try {
+      await axios.get(withApiBase('/api/health'), { timeout: 8000 });
+      setBackendActive(true);
+      setShowBackendPopup(false);
+      if (showToast) toast.success('Backend is active');
+      return true;
+    } catch (_err) {
+      setBackendActive(false);
+      if (showToast) toast.error('Backend is inactive. Click Wake Backend to retry.');
+      return false;
+    } finally {
+      setBackendChecking(false);
+    }
+  }, []);
+
   // Compiler hook
-  const { pdfData, compiling, compileError, lastSuccess, compileTime, manualCompile } = useCompiler(latexString, mode);
+  const { pdfData, compiling, compileError, lastSuccess, compileTime, manualCompile } = useCompiler(latexString, mode, backendActive);
 
   // Resize handler
   const handleResize = useCallback((clientX) => {
@@ -150,13 +176,25 @@ export default function App() {
   }, [mode]);
 
   const handleCompile = useCallback(async () => {
+    if (!backendActive) {
+      setShowBackendPopup(true);
+      toast.error('Backend is inactive');
+      return;
+    }
+
     const result = await manualCompile();
     if (result && !result.ok) {
       toast.error('Compile failed');
     }
-  }, [manualCompile]);
+  }, [backendActive, manualCompile]);
 
   const handleDownloadPdf = useCallback(async () => {
+    if (!backendActive) {
+      setShowBackendPopup(true);
+      toast.error('Backend is inactive');
+      return;
+    }
+
     if (compiling) {
       toast.message('Compilation is in progress...');
       return;
@@ -178,7 +216,7 @@ export default function App() {
     }
 
     toast.error('Unable to download PDF');
-  }, [compiling, manualCompile, pdfData, savePdfBytes]);
+  }, [backendActive, compiling, manualCompile, pdfData, savePdfBytes]);
 
   // Mode change
   const handleModeChange = useCallback((newMode) => {
@@ -198,6 +236,20 @@ export default function App() {
       toast.error('Compile error — check log');
     }
   }, [compileError]);
+
+  React.useEffect(() => {
+    pingBackend(false);
+    const interval = setInterval(() => {
+      pingBackend(false);
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [pingBackend]);
+
+  React.useEffect(() => {
+    if (!backendChecking && !backendActive) {
+      setShowBackendPopup(true);
+    }
+  }, [backendActive, backendChecking]);
 
   // Render active editor
   const renderEditor = () => {
@@ -305,6 +357,9 @@ export default function App() {
         onDownload={handleDownload}
         onDownloadPdf={handleDownloadPdf}
         compiling={compiling}
+        backendActive={backendActive}
+        backendChecking={backendChecking}
+        onWakeBackend={() => pingBackend(true)}
       />
 
       <div ref={containerRef} className="flex-1 flex overflow-hidden">
@@ -335,6 +390,34 @@ export default function App() {
           </div>
         </div>
       </div>
+
+      {showBackendPopup && !backendActive && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 px-4">
+          <div className="w-full max-w-md rounded-xl border border-border bg-surface p-6 shadow-2xl">
+            <h2 className="text-lg font-semibold text-t1">Backend inactive</h2>
+            <p className="mt-2 text-sm text-t2">
+              The compiler server is not reachable right now. Wake it up and try again.
+            </p>
+            <div className="mt-5 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowBackendPopup(false)}
+                className="px-4 py-2 text-sm font-medium text-t1 bg-surface3 rounded-lg hover:bg-border transition-colors"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => pingBackend(true)}
+                disabled={backendChecking}
+                className="px-4 py-2 text-sm font-semibold rounded-lg bg-accent text-[#00285d] hover:brightness-110 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {backendChecking ? 'Checking...' : 'Wake Backend'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

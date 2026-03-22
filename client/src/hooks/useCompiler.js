@@ -31,6 +31,8 @@ export function useCompiler(latexString, mode, enabled = true) {
         validateStatus: (s) => s < 500,
       });
 
+      const contentType = (res.headers?.['content-type'] || '').toLowerCase();
+
       if (res.status === 422) {
         const text = new TextDecoder().decode(res.data);
         let log = text;
@@ -42,6 +44,21 @@ export function useCompiler(latexString, mode, enabled = true) {
         }
         setCompileError(log);
         return { ok: false, error: log };
+      }
+
+      if (res.status !== 200 || !contentType.includes('application/pdf')) {
+        let detail = '';
+        try {
+          detail = new TextDecoder().decode(res.data).slice(0, 300);
+        } catch {
+          // Best-effort decode only.
+        }
+
+        const message = `Compile endpoint returned ${res.status}${
+          detail ? `: ${detail}` : ''
+        }`;
+        setCompileError(message);
+        return { ok: false, error: message };
       }
 
       const pdfBytes = new Uint8Array(res.data);
