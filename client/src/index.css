@@ -1,0 +1,92 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: #131313;
+  color: #e5e2e1;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: #131313;
+}
+::-webkit-scrollbar-thumb {
+  background: #353534;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #424754;
+}
+
+/* Input placeholder */
+::placeholder {
+  color: #5f646f;
+}
+
+/* Focus ring removal */
+*:focus {
+  outline: none;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  box-shadow: 0 0 0 1px rgba(173, 198, 255, 0.35);
+}
+
+/* Textarea resize */
+textarea {
+  resize: vertical;
+}
+
+/* Spinner animation */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Accordion transition */
+.accordion-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+}
+.accordion-body.open {
+  max-height: 2000px;
+  transition: max-height 0.3s ease-in;
+}
+
+/* Slide transition for chevron */
+.chevron-rotate {
+  transition: transform 0.15s ease;
+}
+.chevron-rotate.open {
+  transform: rotate(90deg);
+}
+
+/* PDF canvas shadow */
+.pdf-canvas {
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.45);
+}

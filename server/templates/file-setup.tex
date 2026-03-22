@@ -1,0 +1,85 @@
+% ------------------------------ SETTINGS ------------------------------
+% XeLaTeX-patched version of file-setup.tex
+
+\usepackage{geometry}
+\usepackage{tocloft}
+
+\geometry{
+    paper=a4paper,
+    top=2cm,
+    bottom=2cm,
+    left=2cm,
+    right=2cm,
+    headheight=0.5cm,
+    footskip=1.25cm,
+    headsep=0.5cm,
+}
+
+%------------------------------ XeLaTeX Encoding (patched) ------------------------------
+\usepackage{fontspec}
+\usepackage{xunicode}
+\setmainfont{Latin Modern Roman}
+\setsansfont{Latin Modern Sans}
+
+%------------------------------ Mathematics ------------------------------
+\usepackage{amsmath, amsfonts, amsthm, amssymb}
+\usepackage{braket, nicefrac}
+
+%------------------------------ Units ------------------------------
+\usepackage{siunitx}
+
+%------------------------------ Lists ------------------------------
+\usepackage{enumitem, multicol}
+
+%------------------------------ Figures ------------------------------
+\usepackage{graphicx, float}
+%\usepackage{keystroke}
+
+%------------------------------ Plots ------------------------------
+\usepackage{pgfplots}
+\usepgfplotslibrary{units}
+\pgfplotsset{compat=1.16}
+
+%------------------------------ Line Spacing ------------------------------
+\usepackage{setspace}
+
+%------------------------------ Table of Contents Depth ------------------------------
+\setcounter{tocdepth}{2}
+
+%------------------------------ Hyperlinks ------------------------------
+\usepackage{hyperref}
+
+%------------------------------ Text Justification ------------------------------
+\usepackage{ragged2e}
+\usepackage{microtype}
+\justifying
+
+%------------------------------ Chapter Title Formatting ------------------------------
+\usepackage{titlesec}
+
+\titleformat{\chapter}[hang]
+  {\normalfont\huge\bfseries\raggedright}
+  {\thechapter.}
+  {1em}
+  {}
+
+%------------------------------ Image Path ------------------------------
+\graphicspath{{graphics/}{Graphics/}{./}}
+
+%------------------------------ Custom Environments ------------------------------
+\newenvironment{keywords}{
+    \begin{center}
+    \textbf{Keywords}
+    \vspace{0.5cm}
+    \par
+    \begin{minipage}{0.8\linewidth}
+}{
+    \end{minipage}
+    \noindent\ignorespaces
+    \end{center}
+}
+
+%------------------------------ TOC Styling ------------------------------
+\renewcommand\cftaftertoctitle{\par\noindent\rule{\textwidth}{2pt}\par\vskip -3.5em}
+\renewcommand\cftafterloftitle{\par\noindent\rule{\textwidth}{2pt}\par\vskip -3.0em}
+\renewcommand\cftafterlottitle{\par\noindent\rule{\textwidth}{2pt}\par\vskip -3.0em}

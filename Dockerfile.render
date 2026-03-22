@@ -1,0 +1,28 @@
+FROM node:20-bookworm-slim
+
+# Install XeLaTeX and common LaTeX packages used by this project.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    texlive-xetex \
+    texlive-latex-extra \
+    texlive-science \
+    texlive-pictures \
+    texlive-fonts-recommended \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+COPY server ./server
+
+# Uploads are ephemeral on Render free tier; kept for runtime compatibility.
+RUN mkdir -p /app/uploads
+
+ENV NODE_ENV=production
+ENV PORT=3001
+
+EXPOSE 3001
+
+CMD ["node", "server/index.js"]
