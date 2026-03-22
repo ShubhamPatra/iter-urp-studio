@@ -29,7 +29,7 @@ An example file is available at `client/.env.example`.
 
 ## Deploy Frontend to GitHub Pages (urpstudio.me)
 
-1. Push code to the main branch.
+1. Push code to the main or master branch.
 2. In GitHub repository settings, enable Pages and set source to GitHub Actions.
 3. The workflow in `.github/workflows/deploy-pages.yml` builds `client` and deploys `client/dist`.
 4. The workflow writes `CNAME=urpstudio.me` at deploy time.
